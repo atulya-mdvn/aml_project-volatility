@@ -1,36 +1,30 @@
 from pathlib import Path
+import pandas as pd
+
+from src.shared.schemas import P3_FEATURE_COLUMNS
 
 
-def load_raw_text_sources():
-    """Load raw text data from Fed, news, and earnings sources."""
-    pass
+OUTPUT_PATH = Path("data/processed/p3_features.parquet")
 
 
-def clean_and_standardize_text(df):
-    """Clean text fields, standardize schema, and assign date columns."""
-    pass
+def create_empty_p3_features() -> pd.DataFrame:
+    """Create an empty P3 feature table with the official schema."""
+    return pd.DataFrame(columns=P3_FEATURE_COLUMNS)
 
 
-def embed_text(df):
-    """Generate document-level FinBERT embeddings and sentiment features."""
-    pass
+def validate_p3_schema(df: pd.DataFrame) -> None:
+    """Raise an error if the DataFrame columns do not match the expected schema."""
+    if list(df.columns) != P3_FEATURE_COLUMNS:
+        raise ValueError("P3 schema does not match expected columns.")
 
 
-def aggregate_to_daily(df):
-    """Aggregate document-level features into one row per day."""
-    pass
+def main() -> None:
+    df = create_empty_p3_features()
+    validate_p3_schema(df)
 
-
-def save_outputs(df, output_path: Path):
-    """Save processed daily text features."""
-    pass
-
-
-def main():
-    output_path = Path("data/processed/p3_features.parquet")
-    print("Building P3 text dataset...")
-    # pipeline will go here
-    print(f"Planned output: {output_path}")
+    print("P3 schema established.")
+    print(f"Columns: {list(df.columns)}")
+    print(f"Planned output path: {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

@@ -1,36 +1,30 @@
 from pathlib import Path
+import pandas as pd
+
+from src.shared.schemas import P4_FEATURE_COLUMNS
 
 
-def load_market_data():
-    """Load raw cross-asset market data."""
-    pass
+OUTPUT_PATH = Path("data/processed/p4_features.parquet")
 
 
-def engineer_node_features(df):
-    """Create node-level features such as returns, volatility, and volume signals."""
-    pass
+def create_empty_p4_features() -> pd.DataFrame:
+    """Create an empty P4 feature table with the official schema."""
+    return pd.DataFrame(columns=P4_FEATURE_COLUMNS)
 
 
-def build_edge_table(df):
-    """Compute rolling cross-asset relationships for graph edges."""
-    pass
+def validate_p4_schema(df: pd.DataFrame) -> None:
+    """Raise an error if the DataFrame columns do not match the expected schema."""
+    if list(df.columns) != P4_FEATURE_COLUMNS:
+        raise ValueError("P4 schema does not match expected columns.")
 
 
-def build_graph_snapshots(node_df, edge_df):
-    """Construct daily graph snapshots for downstream GAT modeling."""
-    pass
+def main() -> None:
+    df = create_empty_p4_features()
+    validate_p4_schema(df)
 
-
-def save_outputs(graph_data, output_path: Path):
-    """Save processed graph dataset artifacts."""
-    pass
-
-
-def main():
-    output_path = Path("data/processed/p4_features.parquet")
-    print("Building P4 graph dataset...")
-    # pipeline will go here
-    print(f"Planned output: {output_path}")
+    print("P4 schema established.")
+    print(f"Columns: {list(df.columns)}")
+    print(f"Planned output path: {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":
