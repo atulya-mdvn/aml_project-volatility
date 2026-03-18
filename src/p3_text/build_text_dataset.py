@@ -1,7 +1,11 @@
 from pathlib import Path
 import pandas as pd
 
-from src.shared.schemas import P3_FEATURE_COLUMNS
+from src.shared.schemas import (
+    P3_DOCUMENT_COLUMNS,
+    P3_DOC_FEATURE_COLUMNS,
+    P3_FEATURE_COLUMNS,
+)
 
 
 OUTPUT_PATH = Path("data/processed/p3_features.parquet")
@@ -16,6 +20,18 @@ def validate_p3_schema(df: pd.DataFrame) -> None:
     """Raise an error if the DataFrame columns do not match the expected schema."""
     if list(df.columns) != P3_FEATURE_COLUMNS:
         raise ValueError("P3 schema does not match expected columns.")
+
+
+def create_empty_p3_documents() -> pd.DataFrame:
+    return pd.DataFrame(columns=P3_DOCUMENT_COLUMNS)
+
+
+def create_empty_p3_doc_features() -> pd.DataFrame:
+    return pd.DataFrame(columns=P3_DOC_FEATURE_COLUMNS)
+
+
+def create_empty_p3_features() -> pd.DataFrame:
+    return pd.DataFrame(columns=P3_FEATURE_COLUMNS)
 
 
 def main() -> None:

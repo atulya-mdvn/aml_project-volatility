@@ -1,7 +1,11 @@
 from pathlib import Path
 import pandas as pd
 
-from src.shared.schemas import P4_FEATURE_COLUMNS
+from src.shared.schemas import (
+    P4_NODE_FEATURE_COLUMNS,
+    P4_EDGE_FEATURE_COLUMNS,
+    P4_FEATURE_COLUMNS,
+)
 
 
 OUTPUT_PATH = Path("data/processed/p4_features.parquet")
@@ -16,6 +20,18 @@ def validate_p4_schema(df: pd.DataFrame) -> None:
     """Raise an error if the DataFrame columns do not match the expected schema."""
     if list(df.columns) != P4_FEATURE_COLUMNS:
         raise ValueError("P4 schema does not match expected columns.")
+
+
+def create_empty_p4_node_features() -> pd.DataFrame:
+    return pd.DataFrame(columns=P4_NODE_FEATURE_COLUMNS)
+
+
+def create_empty_p4_edge_features() -> pd.DataFrame:
+    return pd.DataFrame(columns=P4_EDGE_FEATURE_COLUMNS)
+
+
+def create_empty_p4_features() -> pd.DataFrame:
+    return pd.DataFrame(columns=P4_FEATURE_COLUMNS)
 
 
 def main() -> None:
