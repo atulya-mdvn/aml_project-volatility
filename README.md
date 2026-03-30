@@ -59,3 +59,22 @@ The final fusion step will:
 2. align with the regression/classification targets
 3. train an XGBoost meta-model
 4. evaluate performance and run ablations
+
+## Current Status
+
+- P3 (Text): ✅ Complete feature pipeline + modeling scaffold
+- P4 (Graph): ✅ Complete feature pipeline + modeling scaffold
+- P1/P2/P5: 🚧 Prototype notebooks exist, not yet integrated
+- Fusion model: 🚧 Planned
+
+Next steps:
+- Build P5 target dataset
+- Train standalone pillar models
+- Implement XGBoost fusion model
+
+## Example Outputs
+
+- data/processed/p3_features.parquet
+- data/processed/p4_features.parquet
+- outputs/p3/ (structure ready)
+- outputs/p4/ (structure ready)
