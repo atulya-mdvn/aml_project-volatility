@@ -62,10 +62,10 @@ The final fusion step will:
 
 ## Current Status
 
-- P3 (Text): ✅ Complete feature pipeline + modeling scaffold
-- P4 (Graph): ✅ Complete feature pipeline + modeling scaffold
-- P1/P2/P5: 🚧 Prototype notebooks exist, not yet integrated
-- Fusion model: 🚧 Planned
+- P3 (Text): Complete feature pipeline + modeling scaffold
+- P4 (Graph): Complete feature pipeline + modeling scaffold
+- P1/P2/P5: Prototype notebooks exist, not yet integrated
+- Fusion model: Planned
 
 Next steps:
 - Build P5 target dataset
