@@ -29,11 +29,6 @@ def create_empty_p3_documents() -> pd.DataFrame:
 def create_empty_p3_doc_features() -> pd.DataFrame:
     return pd.DataFrame(columns=P3_DOC_FEATURE_COLUMNS)
 
-
-def create_empty_p3_features() -> pd.DataFrame:
-    return pd.DataFrame(columns=P3_FEATURE_COLUMNS)
-
-
 def main() -> None:
     df = create_empty_p3_features()
     validate_p3_schema(df)

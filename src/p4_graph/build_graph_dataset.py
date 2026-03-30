@@ -29,11 +29,6 @@ def create_empty_p4_node_features() -> pd.DataFrame:
 def create_empty_p4_edge_features() -> pd.DataFrame:
     return pd.DataFrame(columns=P4_EDGE_FEATURE_COLUMNS)
 
-
-def create_empty_p4_features() -> pd.DataFrame:
-    return pd.DataFrame(columns=P4_FEATURE_COLUMNS)
-
-
 def main() -> None:
     df = create_empty_p4_features()
     validate_p4_schema(df)
