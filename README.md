@@ -1,80 +1,71 @@
 # aml_project-volatility
 
-Applied Machine Learning final project on multi-modal volatility intelligence.
+Applied Machine Learning final project on multi-modal volatility forecasting.
+
+**Karim Nabilsi & Atulya Madhavan**  
+Columbia University — Spring 2026
+
+---
 
 ## Project Overview
 
-This project studies whether market volatility can be better predicted by combining multiple data modalities:
+This project studies whether future market volatility can be better predicted by combining multiple data modalities rather than relying on price history alone.
 
-- **P1**: LSTM autoencoder for regime detection
-- **P2**: Transformer for daily market time-series attention
-- **P3**: FinBERT-based text pipeline using Fed/news/earnings text
-- **P4**: Graph attention pipeline over cross-asset relationships
-- **P5**: HAR-RV baseline and target construction
+The target variable is primarily **22-day forward S&P 500 realized volatility**.
 
-The final stage will merge outputs from all five pillars and train an **XGBoost fusion model**.
+The system is organized into five modeling pillars:
+
+- **P1: Regime Detection**  
+  Variational LSTM Autoencoder used to learn latent volatility regimes, anomalies, and state transitions.
+
+- **P2: Sequential Time-Series Modeling**  
+  Transformer encoder used to capture medium-term temporal structure in market features.
+
+- **P3: Financial Text Signals**  
+  Text pipeline using financial headlines / macro text to estimate sentiment, uncertainty, and risk-related features.
+
+- **P4: Cross-Asset Graph Modeling**  
+  Graph Attention Network (GAT) using cross-asset relationships and rolling correlations.
+
+- **P5: HAR-RV Baseline**  
+  Classical Heterogeneous Autoregressive Realized Volatility benchmark model.
+
+These pillar outputs are merged into downstream fusion models for final forecasting and evaluation.
+
+---
+
+## Final Modeling Stack
+
+The repository contains multiple final-stage approaches, including:
+
+- HAR-RV linear benchmark
+- XGBoost tabular model
+- Cross-attention fusion model
+- Regime-conditional ensemble models
+- Forecast calibration and confidence interval tools
+
+---
 
 ## Repository Structure
 
-- `data/raw/` — original downloaded data
-- `data/interim/` — cleaned intermediate data
-- `data/processed/` — final modeling-ready feature tables
-
-- `src/p1_regime/` — regime detection code
-- `src/p2_transformer/` — transformer pipeline
-- `src/p3_text/` — text pipeline
-- `src/p4_graph/` — graph pipeline
-- `src/p5_har_rv/` — baseline and target construction
-- `src/fusion/` — feature merge + XGBoost
-- `src/shared/` — shared utilities/configs
-
-- `notebooks/` — exploratory and modeling notebooks by pillar
-- `outputs/` — figures, tables, and saved results
-
-## Collaboration Plan
-
-- **Atulya**: P3 and P4
-- **Karim**: P1, P2, and P5
-
-## Expected Pillar Outputs
-
-Each pillar should eventually export a file like:
-
-- `p1_features.parquet`
-- `p2_features.parquet`
-- `p3_features.parquet`
-- `p4_features.parquet`
-- `p5_features.parquet`
-
-Each file should contain:
-- a `date` column
-- pillar-specific features
-- no duplicate dates
-- consistent formatting for downstream merge
-
-## Fusion Plan
-
-The final fusion step will:
-1. merge all pillar outputs by date
-2. align with the regression/classification targets
-3. train an XGBoost meta-model
-4. evaluate performance and run ablations
-
-## Current Status
-
-- P3 (Text): Complete feature pipeline + modeling scaffold
-- P4 (Graph): Complete feature pipeline + modeling scaffold
-- P1/P2/P5: Prototype notebooks exist, not yet integrated
-- Fusion model: Planned
-
-Next steps:
-- Build P5 target dataset
-- Train standalone pillar models
-- Implement XGBoost fusion model
-
-## Example Outputs
-
-- data/processed/p3_features.parquet
-- data/processed/p4_features.parquet
-- outputs/p3/ (structure ready)
-- outputs/p4/ (structure ready)
+```text
+aml_project-volatility/
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── run.py
+├── data/
+│   ├── raw/
+│   ├── interim/
+│   └── processed/
+├── src/
+│   ├── p1_regime/
+│   ├── p2_transformer/
+│   ├── p3_text/
+│   ├── p4_graph/
+│   ├── p5_har_rv/
+│   ├── fusion/
+│   ├── shared/
+│   └── experimental/
+├── notebooks/
+└── outputs/
