@@ -1,9 +1,29 @@
 """P2: Transformer encoder for sequential pattern matching."""
-import os, numpy as np, pandas as pd
-import torch, torch.nn as nn, torch.nn.functional as F
+import os
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
-from config import *
+
+from src.shared.config import (
+    DEVICE,
+    MODEL_DIR,
+    P2_D_MODEL,
+    P2_DROPOUT,
+    P2_EPOCHS,
+    P2_HEADS,
+    P2_LAYERS,
+    P2_LR,
+    P2_OUTPUT_DIM,
+    P2_SEQ_LEN,
+    PROC_DIR,
+    SPLIT_DATE,
+)
 
 
 class TransDS(Dataset):
