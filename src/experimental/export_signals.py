@@ -10,23 +10,24 @@ Usage:
 Output:
     data/processed/daily_signals.csv
 """
-import numpy as np, pandas as pd, os
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score
+import numpy as np
+import pandas as pd
 import xgboost as xgb
 
-# ── Load config values ──
-SPLIT_DATE = "2020-01-01"
-SEED = 42
-np.random.seed(SEED)
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
-XGB_PARAMS = dict(
-    n_estimators=200, max_depth=3, learning_rate=0.05,
-    subsample=0.7, colsample_bytree=0.5,
-    reg_alpha=0.3, reg_lambda=3.0,
-    random_state=SEED, verbosity=0,
+from src.shared.config import (
+    PROCESSED_DATA_DIR,
+    SPLIT_DATE,
+    SEED,
+    XGB_PARAMS,
+    ENSEMBLE_HAR_WEIGHT_CALM,
+    ENSEMBLE_HAR_WEIGHT_NORMAL,
+    ENSEMBLE_HAR_WEIGHT_STRESS,
+    ENSEMBLE_HAR_WEIGHT_CRISIS,
 )
+
+np.random.seed(SEED)
 
 # Regime-conditional weights
 def get_regime(vix):
@@ -36,14 +37,32 @@ def get_regime(vix):
     else: return "CALM"
 
 def get_har_weight(vix):
-    if vix > 35: return 0.70
-    elif vix > 25: return 0.60
-    elif vix > 18: return 0.40
-    else: return 0.30
-
+    if vix > 35:
+        return ENSEMBLE_HAR_WEIGHT_CRISIS
+    elif vix > 25:
+        return ENSEMBLE_HAR_WEIGHT_STRESS
+    elif vix > 18:
+        return ENSEMBLE_HAR_WEIGHT_NORMAL
+    return ENSEMBLE_HAR_WEIGHT_CALM
 
 def main():
-    proc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "processed")
+    proc_dir = PROCESSED_DATA_DIR
+
+    required_files = [
+        "features.csv",
+        "p1_latent.csv",
+        "p2_transformer.csv",
+        "p3_finbert.csv",
+        "p4_gat.csv",
+    ]
+
+    missing = [fname for fname in required_files if not (proc_dir / fname).exists()]
+    if missing:
+        print("Missing required processed files:")
+        for fname in missing:
+            print(f"  - {proc_dir / fname}")
+        print("\nRun the upstream feature/pipeline generation steps first.")
+        return None
 
     print("=" * 60)
     print("EXPORTING MODEL SIGNALS FOR QUANTCONNECT")
@@ -51,11 +70,13 @@ def main():
 
     # ── Load cached pipeline outputs ──
     print("\nLoading cached data...")
-    features = pd.read_csv(os.path.join(proc_dir, "features.csv"), index_col=0, parse_dates=True)
-    p1 = pd.read_csv(os.path.join(proc_dir, "p1_latent.csv"), index_col=0, parse_dates=True)
-    p2 = pd.read_csv(os.path.join(proc_dir, "p2_transformer.csv"), index_col=0, parse_dates=True)
-    p3 = pd.read_csv(os.path.join(proc_dir, "p3_finbert.csv"), index_col=0, parse_dates=True)
-    p4 = pd.read_csv(os.path.join(proc_dir, "p4_gat.csv"), index_col=0, parse_dates=True)
+
+    features = pd.read_csv(proc_dir / "features.csv", index_col=0, parse_dates=True)
+    p1 = pd.read_csv(proc_dir / "p1_latent.csv", index_col=0, parse_dates=True)
+    p2 = pd.read_csv(proc_dir / "p2_transformer.csv", index_col=0, parse_dates=True)
+    p3 = pd.read_csv(proc_dir / "p3_finbert.csv", index_col=0, parse_dates=True)
+    p4 = pd.read_csv(proc_dir / "p4_gat.csv", index_col=0, parse_dates=True)
+
     print(f"  Features: {features.shape}")
     print(f"  P1 VAE: {p1.shape}")
     print(f"  P2 Transformer: {p2.shape}")
@@ -198,7 +219,7 @@ def main():
 
     # ── Save CSV ──
     signals_df = pd.DataFrame(all_signals)
-    output_path = os.path.join(proc_dir, "daily_signals.csv")
+    output_path = proc_dir / "daily_signals.csv"
     signals_df.to_csv(output_path, index=False)
     print(f"\n  Saved {len(signals_df)} daily signals to {output_path}")
 
