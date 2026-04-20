@@ -34,17 +34,51 @@ def connect_ibkr():
         return ib
     except Exception as e:
         print(f"  IBKR connection failed: {e}")
-        print(f"  Falling back to Yahoo Finance.")
+        print("  Falling back to Yahoo Finance.")
         return None
+
+
+# CHANGE: Added a small helper so Yahoo fallback is more robust.
+# Why: yfinance can get rate-limited, and the old code immediately accepted
+# empty results. This preserves the fallback design, but makes it retry first.
+def safe_yf_download(ticker, max_retries=3, sleep_seconds=3, **kwargs):
+    """Retry Yahoo Finance download a few times before giving up."""
+    last_error = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            df = yf.download(ticker, progress=False, threads=False, **kwargs)
+            if df is not None and len(df) > 0:
+                return df
+
+            print(f"    {ticker}: empty download on attempt {attempt}/{max_retries}")
+        except Exception as e:
+            last_error = e
+            print(f"    {ticker}: attempt {attempt}/{max_retries} failed ({e})")
+
+        if attempt < max_retries:
+            time.sleep(sleep_seconds * attempt)
+
+    if last_error is not None:
+        print(f"    {ticker}: all Yahoo attempts failed; returning empty DataFrame")
+    else:
+        print(f"    {ticker}: Yahoo returned no rows after {max_retries} attempts")
+
+    return pd.DataFrame()
 
 
 def download_spx_daily(ib=None):
     """Download SPX daily OHLCV. Uses IBKR if available, else Yahoo."""
     path = os.path.join(RAW_DIR, "spx_daily.csv")
     if os.path.exists(path):
-        df = pd.read_csv(path, index_col="Date", parse_dates=True)
-        print(f"  SPX daily (cached): {len(df)} rows")
-        return df
+        try:
+            df = pd.read_csv(path, index_col="Date", parse_dates=True)
+            print(f"  SPX daily (cached): {len(df)} rows")
+            return df
+        except Exception as e:
+            print(f"  SPX daily cache unreadable: {e}")
+            print("  Deleting bad cache and re-downloading...")
+            os.remove(path)
 
     if ib is not None:
         try:
@@ -52,12 +86,20 @@ def download_spx_daily(ib=None):
             contract = Index("SPX", "CBOE")
             ib.qualifyContracts(contract)
             bars = ib.reqHistoricalData(
-                contract, endDateTime="", durationStr="20 Y",
-                barSizeSetting="1 day", whatToShow="TRADES", useRTH=True
+                contract,
+                endDateTime="",
+                durationStr="20 Y",
+                barSizeSetting="1 day",
+                whatToShow="TRADES",
+                useRTH=True
             )
             df = pd.DataFrame([{
-                "Date": b.date, "Open": b.open, "High": b.high,
-                "Low": b.low, "Close": b.close, "Volume": b.volume
+                "Date": b.date,
+                "Open": b.open,
+                "High": b.high,
+                "Low": b.low,
+                "Close": b.close,
+                "Volume": b.volume
             } for b in bars]).set_index("Date")
             df.index = pd.to_datetime(df.index)
             df.to_csv(path)
@@ -66,7 +108,16 @@ def download_spx_daily(ib=None):
         except Exception as e:
             print(f"  IBKR SPX daily failed: {e}, falling back to Yahoo")
 
-    df = yf.download("^GSPC", start=START_DATE, end=END_DATE, auto_adjust=True)
+    # CHANGE: Use safe_yf_download instead of raw yf.download.
+    # Why: keeps Yahoo as fallback, but gives it a few chances before failing.
+    df = safe_yf_download("^GSPC", start=START_DATE, end=END_DATE, auto_adjust=True)
+
+    # CHANGE: Do not save empty files.
+    # Why: empty cached CSVs would make later runs misleading and harder to debug.
+    if len(df) == 0:
+        print("  SPX daily (Yahoo) failed: 0 rows")
+        return df
+
     df.to_csv(path)
     print(f"  SPX daily (Yahoo): {len(df)} rows")
     return df
@@ -82,7 +133,7 @@ def download_spx_intraday(ib=None):
         return df
 
     if ib is None:
-        print(f"  SPX intraday: IBKR required, skipping (will use daily RV)")
+        print("  SPX intraday: IBKR required, skipping (will use daily RV)")
         return None
 
     try:
@@ -95,8 +146,12 @@ def download_spx_intraday(ib=None):
         end = ""
         for _ in range(5):  # up to 5 years back
             bars = ib.reqHistoricalData(
-                contract, endDateTime=end, durationStr=IBKR_DURATION,
-                barSizeSetting=IBKR_BAR_SIZE, whatToShow="TRADES", useRTH=True
+                contract,
+                endDateTime=end,
+                durationStr=IBKR_DURATION,
+                barSizeSetting=IBKR_BAR_SIZE,
+                whatToShow="TRADES",
+                useRTH=True
             )
             if not bars:
                 break
@@ -105,8 +160,12 @@ def download_spx_intraday(ib=None):
             time.sleep(2)  # IBKR pacing
 
         df = pd.DataFrame([{
-            "DateTime": b.date, "Open": b.open, "High": b.high,
-            "Low": b.low, "Close": b.close, "Volume": b.volume
+            "DateTime": b.date,
+            "Open": b.open,
+            "High": b.high,
+            "Low": b.low,
+            "Close": b.close,
+            "Volume": b.volume
         } for b in all_bars]).set_index("DateTime")
         df.index = pd.to_datetime(df.index)
         df = df.sort_index().drop_duplicates()
@@ -128,7 +187,7 @@ def download_options_chain(ib=None):
         return df
 
     if ib is None:
-        print(f"  SPX options: IBKR required, skipping (will use VIX proxies)")
+        print("  SPX options: IBKR required, skipping (will use VIX proxies)")
         return None
 
     try:
@@ -146,18 +205,16 @@ def download_options_chain(ib=None):
             chain = chains
         chain = chain[0]
 
-        # get nearest 3 expirations
         expirations = sorted(chain.expirations)[:3]
         strikes = sorted(chain.strikes)
 
-        # find ATM strike
         ticker = ib.reqMktData(contract)
         ib.sleep(2)
         spot = ticker.marketPrice()
         if np.isnan(spot):
             spot = ticker.close
         atm_idx = np.argmin(np.abs(np.array(strikes) - spot))
-        nearby_strikes = strikes[max(0, atm_idx-10):atm_idx+11]
+        nearby_strikes = strikes[max(0, atm_idx - 10):atm_idx + 11]
 
         records = []
         for exp in expirations:
@@ -169,12 +226,15 @@ def download_options_chain(ib=None):
                         ticker = ib.reqMktData(opt, genericTickList="106")
                         ib.sleep(0.5)
                         records.append({
-                            "expiration": exp, "strike": strike, "right": right,
-                            "bid": ticker.bid, "ask": ticker.ask,
+                            "expiration": exp,
+                            "strike": strike,
+                            "right": right,
+                            "bid": ticker.bid,
+                            "ask": ticker.ask,
                             "impliedVol": ticker.modelGreeks.impliedVol if ticker.modelGreeks else np.nan,
                             "delta": ticker.modelGreeks.delta if ticker.modelGreeks else np.nan,
                         })
-                    except:
+                    except Exception:
                         pass
             time.sleep(1)
 
@@ -191,21 +251,36 @@ def download_vix(ib=None):
     """Download VIX term structure."""
     path = os.path.join(RAW_DIR, "vix_term_structure.csv")
     if os.path.exists(path):
-        df = pd.read_csv(path, index_col="Date", parse_dates=True)
-        print(f"  VIX (cached): {len(df)} rows")
-        return df
+        try:
+            df = pd.read_csv(path, index_col="Date", parse_dates=True)
+            print(f"  VIX (cached): {len(df)} rows")
+            return df
+        except Exception as e:
+            print(f"  VIX cache unreadable: {e}")
+            print("  Deleting bad cache and re-downloading...")
+            os.remove(path)
 
     frames = {}
     for label, ticker in {"VIX": "^VIX", "VIX3M": "^VIX3M", "VIX6M": "^VIX6M"}.items():
         try:
-            df = yf.download(ticker, start=START_DATE, end=END_DATE, auto_adjust=True)
+            # CHANGE: use safe_yf_download instead of raw yf.download
+            df = safe_yf_download(ticker, start=START_DATE, end=END_DATE, auto_adjust=True)
             if len(df) > 0:
                 frames[label] = df["Close"].squeeze()
-        except:
-            pass
+
+            # CHANGE: small pacing between Yahoo calls
+            # Why: reduces the chance of immediate back-to-back rate limits.
+            time.sleep(1)
+        except Exception as e:
+            print(f"    {ticker}: FAILED ({e})")
+
     vix = pd.DataFrame(frames)
     vix.index.name = "Date"
-    vix.to_csv(path)
+
+    # CHANGE: only cache if we actually got something
+    if len(vix) > 0:
+        vix.to_csv(path)
+
     print(f"  VIX (Yahoo): {len(vix)} rows")
     return vix
 
@@ -214,22 +289,38 @@ def download_cross_assets():
     """Download cross-asset ETFs for P4."""
     path = os.path.join(RAW_DIR, "cross_assets.csv")
     if os.path.exists(path):
-        df = pd.read_csv(path, index_col="Date", parse_dates=True)
-        print(f"  Cross-assets (cached): {df.shape}")
-        return df
+        try:
+            df = pd.read_csv(path, index_col="Date", parse_dates=True)
+            print(f"  Cross-assets (cached): {df.shape}")
+            return df
+        except Exception as e:
+            print(f"  Cross-assets cache unreadable: {e}")
+            print("  Deleting bad cache and re-downloading...")
+            os.remove(path)
 
     frames = {}
     for ticker, name in CROSS_ASSETS.items():
         try:
-            df = yf.download(ticker, start=START_DATE, end=END_DATE, auto_adjust=True, progress=False)
+            # CHANGE: use safe_yf_download instead of raw yf.download
+            df = safe_yf_download(ticker, start=START_DATE, end=END_DATE, auto_adjust=True)
             if len(df) > 0:
                 frames[ticker] = df["Close"].squeeze()
                 print(f"    {ticker} ({name}): {len(df)}")
-        except:
-            print(f"    {ticker} ({name}): FAILED")
+            else:
+                print(f"    {ticker} ({name}): 0 rows")
+
+            # CHANGE: small pacing between requests
+            time.sleep(1)
+        except Exception as e:
+            print(f"    {ticker} ({name}): FAILED ({e})")
+
     cross = pd.DataFrame(frames)
     cross.index.name = "Date"
-    cross.to_csv(path)
+
+    # CHANGE: only cache non-empty cross-asset data
+    if cross.shape[0] > 0 and cross.shape[1] > 0:
+        cross.to_csv(path)
+
     print(f"  Cross-assets: {cross.shape}")
     return cross
 
@@ -252,16 +343,20 @@ def download_news():
         try:
             feed = feedparser.parse(url)
             for entry in feed.entries:
-                if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                    ds = f"{entry.published_parsed.tm_year}-{entry.published_parsed.tm_mon:02d}-{entry.published_parsed.tm_mday:02d}"
+                if hasattr(entry, "published_parsed") and entry.published_parsed:
+                    ds = (
+                        f"{entry.published_parsed.tm_year}-"
+                        f"{entry.published_parsed.tm_mon:02d}-"
+                        f"{entry.published_parsed.tm_mday:02d}"
+                    )
                     if ds not in data:
                         data[ds] = []
-                    data[ds].append(entry.get('title', ''))
+                    data[ds].append(entry.get("title", ""))
             print(f"    RSS: {len(feed.entries)} entries from {url[:50]}...")
         except Exception as e:
             print(f"    RSS failed: {url[:50]}... ({e})")
 
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(data, f)
     print(f"  News: {len(data)} dates")
     return data
