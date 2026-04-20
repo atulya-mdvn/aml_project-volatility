@@ -1,7 +1,14 @@
 """P3: Financial text analysis using real news data + Claude API."""
-import os, json, time, requests, numpy as np, pandas as pd
+import json
+import os
+import time
 from datetime import datetime, timedelta
-from config import *
+
+import numpy as np
+import pandas as pd
+import requests
+
+from src.shared.config import PROC_DIR, RAW_DIR, SPLIT_DATE
 
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 NYT_KEY = os.environ.get("NYT_API_KEY", "")
