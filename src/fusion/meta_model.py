@@ -1,10 +1,32 @@
 """Meta-model: cross-attention fusion + regime-conditional ensemble."""
-import numpy as np, pandas as pd, torch, torch.nn as nn
-from sklearn.preprocessing import StandardScaler
+import os
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import xgboost as xgb
+
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, roc_auc_score
-import xgboost as xgb
-from config import *
+from sklearn.preprocessing import StandardScaler
+
+from src.shared.config import (
+    DEVICE,
+    ENSEMBLE_HAR_WEIGHT_CALM,
+    ENSEMBLE_HAR_WEIGHT_CRISIS,
+    ENSEMBLE_HAR_WEIGHT_NORMAL,
+    ENSEMBLE_HAR_WEIGHT_STRESS,
+    META_DROPOUT,
+    META_EPOCHS,
+    META_FOCAL_GAMMA,
+    META_HEADS,
+    META_HIDDEN,
+    META_LR,
+    MODEL_DIR,
+    SPLIT_DATE,
+    XGB_PARAMS,
+)
 
 
 class FocalLoss(nn.Module):
