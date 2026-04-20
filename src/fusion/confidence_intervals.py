@@ -30,21 +30,27 @@ Columns in the output:
 """
 
 import os
-import sys
 import warnings
+
 warnings.filterwarnings("ignore")
 
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, roc_auc_score
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    roc_auc_score,
+)
+
+from src.shared.config import PROC_DIR
 
 
 # ════════════════════════════════════════════════════════════
 # CONFIG
 # ════════════════════════════════════════════════════════════
-PROC_DIR = "data/processed"
 TRAIN_CUTOFF = "2020-01-01"      # everything before this = train
 CALIB_CUTOFF = "2022-01-01"      # train < 2020, calibration 2020-2022, test > 2022
 QUANTILES = [0.10, 0.50, 0.90]   # 80% prediction interval
