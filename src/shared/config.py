@@ -1,18 +1,42 @@
 """
 Central configuration for the Volatility Intelligence project.
 """
-import os
-import torch
-import numpy as np
-import random
+from pathlib import Path
 
-# ─── Random Seed (for reproducible results) ───────────────
+# ─── Basic Runtime Settings ───────────────────────────────
 SEED = 42
-random.seed(SEED)
-np.random.seed(SEED)
-torch.manual_seed(SEED)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed_all(SEED)
+DEVICE = "cpu"   # training scripts can override with torch.device(...)
+
+# ─── Repo Root / Paths ────────────────────────────────────
+# config.py lives in: src/shared/config.py
+# so repo root is two levels up from this file
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+DATA_DIR = REPO_ROOT / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+INTERIM_DATA_DIR = DATA_DIR / "interim"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
+
+OUTPUTS_DIR = REPO_ROOT / "outputs"
+MODELS_DIR = REPO_ROOT / "models"
+NOTEBOOKS_DIR = REPO_ROOT / "notebooks"
+
+for path in [
+    DATA_DIR,
+    RAW_DATA_DIR,
+    INTERIM_DATA_DIR,
+    PROCESSED_DATA_DIR,
+    OUTPUTS_DIR,
+    MODELS_DIR,
+    NOTEBOOKS_DIR,
+]:
+    path.mkdir(parents=True, exist_ok=True)
+
+# Optional backwards-compatible aliases while we repair the repo
+RAW_DIR = RAW_DATA_DIR
+PROC_DIR = PROCESSED_DATA_DIR
+MODEL_DIR = MODELS_DIR
+BASE_DIR = REPO_ROOT
 
 # ─── IBKR Connection ──────────────────────────────────────
 IBKR_HOST = "127.0.0.1"
@@ -20,17 +44,8 @@ IBKR_PORT = 7497
 IBKR_CLIENT_ID = 1
 IBKR_TIMEOUT = 30
 
-# ─── Paths ─────────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
-PROC_DIR = os.path.join(BASE_DIR, "data", "processed")
-MODEL_DIR = os.path.join(BASE_DIR, "models")
-
-for d in [RAW_DIR, PROC_DIR, MODEL_DIR]:
-    os.makedirs(d, exist_ok=True)
-
 # ─── Data Settings ─────────────────────────────────────────
-START_DATE = "2000-01-01"   # extended back to 2000 for more training variety
+START_DATE = "2000-01-01"
 END_DATE = "2025-12-31"
 SPLIT_DATE = "2020-01-01"
 TARGET_WINDOW = 22
@@ -50,8 +65,6 @@ CROSS_ASSETS = {
 }
 
 # ─── Model Hyperparameters ─────────────────────────────────
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # P1: VAE
 P1_SEQ_LEN = 30
 P1_LATENT_DIM = 8
@@ -62,7 +75,7 @@ P1_LR = 1e-3
 P1_KL_WEIGHT = 0.01
 P1_VOL_WEIGHT = 0.1
 
-# P2: Transformer — now takes text features too
+# P2: Transformer
 P2_SEQ_LEN = 60
 P2_D_MODEL = 64
 P2_HEADS = 4
@@ -91,17 +104,20 @@ META_LR = 1e-3
 META_FOCAL_GAMMA = 2.0
 
 # Ensemble — regime-conditional weights
-ENSEMBLE_HAR_WEIGHT_CALM = 0.30     # less HAR-RV during calm (Full model shines)
-ENSEMBLE_HAR_WEIGHT_NORMAL = 0.40   # balanced
-ENSEMBLE_HAR_WEIGHT_STRESS = 0.60   # more HAR-RV during stress (more reliable)
-ENSEMBLE_HAR_WEIGHT_CRISIS = 0.70   # heavily HAR-RV during crisis
+ENSEMBLE_HAR_WEIGHT_CALM = 0.30
+ENSEMBLE_HAR_WEIGHT_NORMAL = 0.40
+ENSEMBLE_HAR_WEIGHT_STRESS = 0.60
+ENSEMBLE_HAR_WEIGHT_CRISIS = 0.70
 
 # XGBoost
 XGB_PARAMS = dict(
-    n_estimators=200, max_depth=3, learning_rate=0.05,
-    subsample=0.7, colsample_bytree=0.5,
-    reg_alpha=0.3, reg_lambda=3.0,
-    random_state=SEED, verbosity=0,
+    n_estimators=200,
+    max_depth=3,
+    learning_rate=0.05,
+    subsample=0.7,
+    colsample_bytree=0.5,
+    reg_alpha=0.3,
+    reg_lambda=3.0,
+    random_state=SEED,
+    verbosity=0,
 )
-
-print(f"Config loaded. Device: {DEVICE}, Seed: {SEED}")
