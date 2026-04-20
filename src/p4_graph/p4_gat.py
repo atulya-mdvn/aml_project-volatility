@@ -1,8 +1,26 @@
 """P4: Graph Attention Network for cross-asset contagion."""
-import os, numpy as np, pandas as pd
-import torch, torch.nn as nn, torch.nn.functional as F
-from config import *
+import os
 
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from src.shared.config import (
+    DEVICE,
+    MODEL_DIR,
+    P4_CORR_WINDOW,
+    P4_DROPOUT,
+    P4_EPOCHS,
+    P4_HEADS,
+    P4_HIDDEN,
+    P4_LR,
+    P4_OUTPUT,
+    P4_PATIENCE,
+    PROC_DIR,
+    SPLIT_DATE,
+)
 
 class GraphAttentionLayer(nn.Module):
     def __init__(self, in_feat, out_feat, dropout=0.15):
