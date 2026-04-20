@@ -1,9 +1,29 @@
 """P1: Variational LSTM Autoencoder for regime detection."""
-import os, numpy as np, pandas as pd
-import torch, torch.nn as nn, torch.nn.functional as F
+import os
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
-from config import *
+
+from src.shared.config import (
+    DEVICE,
+    MODEL_DIR,
+    P1_DROPOUT,
+    P1_EPOCHS,
+    P1_HIDDEN_DIM,
+    P1_KL_WEIGHT,
+    P1_LATENT_DIM,
+    P1_LR,
+    P1_SEQ_LEN,
+    P1_VOL_WEIGHT,
+    PROC_DIR,
+    SPLIT_DATE,
+)
 
 
 class SeqDataset(Dataset):
