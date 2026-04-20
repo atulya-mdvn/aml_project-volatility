@@ -1,8 +1,8 @@
 """P5: HAR-RV linear baseline."""
-import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, roc_auc_score
-from config import *
+
+from src.shared.config import SPLIT_DATE
 
 
 def train_har_rv(feat):
