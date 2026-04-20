@@ -1,14 +1,28 @@
 """Evaluation: Diebold-Mariano, calibration, conformal prediction, SHAP, walk-forward."""
-import numpy as np, pandas as pd, matplotlib
-matplotlib.use('Agg')
+import os
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from scipy import stats
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import mean_squared_error, roc_auc_score, brier_score_loss
-from sklearn.calibration import calibration_curve
-import xgboost as xgb
 import shap
-from config import *
+import xgboost as xgb
+
+from scipy import stats
+from sklearn.calibration import calibration_curve
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import brier_score_loss, mean_squared_error, roc_auc_score
+
+from src.shared.config import (
+    DEVICE,
+    ENSEMBLE_HAR_WEIGHT_CALM,
+    ENSEMBLE_HAR_WEIGHT_CRISIS,
+    ENSEMBLE_HAR_WEIGHT_NORMAL,
+    ENSEMBLE_HAR_WEIGHT_STRESS,
+    PROC_DIR,
+    XGB_PARAMS,
+)
 
 
 def diebold_mariano(actual, p1, p2, h=22):
