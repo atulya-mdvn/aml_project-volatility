@@ -1,12 +1,27 @@
 """
 Data download: IBKR for intraday + options, Yahoo Finance as fallback.
 """
-import os, json, time
+import json
+import os
+import time
+
+import feedparser
 import numpy as np
 import pandas as pd
 import yfinance as yf
-import feedparser
-from config import *
+
+from src.shared.config import (
+    CROSS_ASSETS,
+    END_DATE,
+    IBKR_BAR_SIZE,
+    IBKR_CLIENT_ID,
+    IBKR_DURATION,
+    IBKR_HOST,
+    IBKR_PORT,
+    IBKR_TIMEOUT,
+    RAW_DIR,
+    START_DATE,
+)
 
 
 def connect_ibkr():
