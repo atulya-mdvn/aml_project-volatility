@@ -103,11 +103,11 @@ def train_transformer(feat, feature_cols):
         avg = total/n
         if avg < best_loss:
             best_loss = avg
-            torch.save(model.state_dict(), os.path.join(MODEL_DIR, "transformer.pt"))
+            torch.save(model.state_dict(), MODEL_DIR / "transformer.pt")
         if (epoch+1) % 10 == 0:
             print(f"  Epoch {epoch+1}/{P2_EPOCHS}  Loss: {avg:.6f}")
 
-    model.load_state_dict(torch.load(os.path.join(MODEL_DIR, "transformer.pt")))
+    model.load_state_dict(torch.load(MODEL_DIR / "transformer.pt"))
 
     # extract embeddings
     model.eval()
@@ -121,6 +121,6 @@ def train_transformer(feat, feature_cols):
     embeds = np.concatenate(embeds)
     dates = feat.index[P2_SEQ_LEN-1:][:len(embeds)]
     trans_df = pd.DataFrame(embeds, index=dates, columns=[f"trans_{i}" for i in range(P2_OUTPUT_DIM)])
-    trans_df.to_csv(os.path.join(PROC_DIR, "p2_transformer.csv"))
+    trans_df.to_csv(PROC_DIR / "p2_transformer.csv")
     print(f"  P2 embeddings: {trans_df.shape}")
     return trans_df, model

@@ -150,7 +150,7 @@ def train_meta(feat, feature_cols, latent_df, trans_df, text_df, gat_df, har_pre
         if epoch % 20 == 0:
             print(f"  Epoch {epoch}/{META_EPOCHS}  Loss: {loss.item():.6f}")
 
-    torch.save(ca.state_dict(), os.path.join(MODEL_DIR, "cross_attention.pt"))
+    torch.save(ca.state_dict(), MODEL_DIR / "cross_attention.pt")
 
     # free training data
     import gc

@@ -113,7 +113,7 @@ def train_vae(feat, feature_cols):
         if (epoch+1) % 15 == 0:
             print(f"  Epoch {epoch+1}/{P1_EPOCHS}  Recon: {r_t/n:.6f}  KL: {kl_t/n:.4f}  Vol: {v_t/n:.6f}")
 
-    torch.save(model.state_dict(), os.path.join(MODEL_DIR, "vae.pt"))
+    torch.save(model.state_dict(), MODEL_DIR / "vae.pt")
 
     # extract features
     model.eval()
@@ -148,6 +148,6 @@ def train_vae(feat, feature_cols):
         centroid = coords[crisis_mask].mean().values
         latent_df["crisis_distance"] = np.sqrt(((coords.values - centroid)**2).sum(axis=1))
 
-    latent_df.to_csv(os.path.join(PROC_DIR, "p1_latent.csv"))
+    latent_df.to_csv(PROC_DIR / "p1_latent.csv")
     print(f"  P1 features: {latent_df.shape}")
     return latent_df, model

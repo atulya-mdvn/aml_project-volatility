@@ -69,7 +69,7 @@ def safe_yf_download(ticker, max_retries=3, sleep_seconds=3, **kwargs):
 
 def download_spx_daily(ib=None):
     """Download SPX daily OHLCV. Uses IBKR if available, else Yahoo."""
-    path = os.path.join(RAW_DIR, "spx_daily.csv")
+    path = RAW_DIR / "spx_daily.csv"
     if os.path.exists(path):
         try:
             df = pd.read_csv(path, index_col="Date", parse_dates=True)
@@ -126,7 +126,7 @@ def download_spx_daily(ib=None):
 def download_spx_intraday(ib=None):
     """Download SPX 5-minute bars from IBKR for more accurate RV.
     Returns None if IBKR unavailable (daily RV will be used instead)."""
-    path = os.path.join(RAW_DIR, "spx_intraday.csv")
+    path = RAW_DIR / "spx_intraday.csv"
     if os.path.exists(path):
         df = pd.read_csv(path, index_col="DateTime", parse_dates=True)
         print(f"  SPX intraday (cached): {len(df)} rows")
@@ -180,7 +180,7 @@ def download_spx_intraday(ib=None):
 def download_options_chain(ib=None):
     """Download SPX options chain for real IV surface.
     Returns None if IBKR unavailable (VIX proxies used instead)."""
-    path = os.path.join(RAW_DIR, "spx_options.csv")
+    path = RAW_DIR / "spx_options.csv"
     if os.path.exists(path):
         df = pd.read_csv(path, index_col=0, parse_dates=True)
         print(f"  SPX options (cached): {len(df)} rows")
@@ -249,7 +249,7 @@ def download_options_chain(ib=None):
 
 def download_vix(ib=None):
     """Download VIX term structure."""
-    path = os.path.join(RAW_DIR, "vix_term_structure.csv")
+    path = RAW_DIR / "vix_term_structure.csv"
     if os.path.exists(path):
         try:
             df = pd.read_csv(path, index_col="Date", parse_dates=True)
@@ -287,7 +287,7 @@ def download_vix(ib=None):
 
 def download_cross_assets():
     """Download cross-asset ETFs for P4."""
-    path = os.path.join(RAW_DIR, "cross_assets.csv")
+    path = RAW_DIR / "cross_assets.csv"
     if os.path.exists(path):
         try:
             df = pd.read_csv(path, index_col="Date", parse_dates=True)
@@ -327,7 +327,7 @@ def download_cross_assets():
 
 def download_news():
     """Download financial news headlines from RSS feeds."""
-    path = os.path.join(RAW_DIR, "news_headlines.json")
+    path = RAW_DIR / "news_headlines.json"
     if os.path.exists(path):
         with open(path) as f:
             data = json.load(f)

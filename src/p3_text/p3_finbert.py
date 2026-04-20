@@ -19,7 +19,7 @@ ANALYZE_EVERY_TEST = 1    # every day for test period (2020+)
 
 
 def download_nyt_headlines(start_year=2000, end_year=2025):
-    cache_path = os.path.join(RAW_DIR, "nyt_headlines.json")
+    cache_path = RAW_DIR / "nyt_headlines.json"
     if os.path.exists(cache_path):
         with open(cache_path) as f:
             data = json.load(f)
@@ -71,7 +71,7 @@ def download_nyt_headlines(start_year=2000, end_year=2025):
 
 
 def download_fomc_data():
-    cache_path = os.path.join(RAW_DIR, "fomc_data.json")
+    cache_path = RAW_DIR / "fomc_data.json"
     if os.path.exists(cache_path):
         with open(cache_path) as f:
             data = json.load(f)
@@ -210,7 +210,7 @@ def train_finbert(feat, news_data):
         for offset in [-1, 0, 1]:
             fomc_dates_set.add((fd_ts + pd.Timedelta(days=offset)).strftime("%Y-%m-%d"))
 
-    cache_path = os.path.join(PROC_DIR, "p3_claude_cache.json")
+    cache_path = PROC_DIR / "p3_claude_cache.json"
     if os.path.exists(cache_path):
         with open(cache_path) as f:
             cache = json.load(f)
@@ -346,6 +346,6 @@ def train_finbert(feat, news_data):
             keep_cols.extend([f"{extra}_5d", f"{extra}_22d"])
 
     output = text_df[keep_cols].copy()
-    output.to_csv(os.path.join(PROC_DIR, "p3_finbert.csv"))
+    output.to_csv(PROC_DIR / "p3_finbert.csv")
     print(f"  P3 features: {output.shape}", flush=True)
     return output

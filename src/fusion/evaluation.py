@@ -149,9 +149,9 @@ def run_evaluation(results):
 
         plt.suptitle("V5 Evaluation (Regime-Conditional Ensemble)", fontsize=14)
         plt.tight_layout()
-        plt.savefig(os.path.join(PROC_DIR, "evaluation_plots.png"), dpi=150)
+        plt.savefig(PROC_DIR / "evaluation_plots.png", dpi=150)
         plt.close()
-        print(f"  Plots saved to {os.path.join(PROC_DIR, 'evaluation_plots.png')}")
+        print(f"  Plots saved to {PROC_DIR / 'evaluation_plots.png'}")
     except Exception as e:
         print(f"  Plotting failed (non-critical): {e}")
 
@@ -166,9 +166,9 @@ def run_evaluation(results):
         shap.summary_plot(sv, m_test[meta_feat_cols], plot_type="bar", show=False, max_display=30)
         plt.title("SHAP — V5")
         plt.tight_layout()
-        plt.savefig(os.path.join(PROC_DIR, "shap_overall.png"), dpi=150)
+        plt.savefig(PROC_DIR / "shap_overall.png", dpi=150)
         plt.close()
-        print(f"  SHAP plot saved to {os.path.join(PROC_DIR, 'shap_overall.png')}")
+        print(f"  SHAP plot saved to {PROC_DIR / 'shap_overall.png'}")
 
         fi = pd.Series(np.abs(sv).mean(axis=0), index=meta_feat_cols).sort_values(ascending=False)
         p5 = ["RV_1d", "RV_5d", "RV_22d"]
@@ -260,9 +260,9 @@ def run_walk_forward(meta, meta_feat_cols):
             axes[1].plot(d.index, d.values, 'o-', label=label, markersize=4)
         axes[1].set_title("AUC by Year"); axes[1].legend()
         plt.suptitle("Walk-Forward CV — V5 (Regime-Conditional)"); plt.tight_layout()
-        plt.savefig(os.path.join(PROC_DIR, "walk_forward.png"), dpi=150)
+        plt.savefig(PROC_DIR / "walk_forward.png", dpi=150)
         plt.close()
-        print(f"  Walk-forward plot saved to {os.path.join(PROC_DIR, 'walk_forward.png')}")
+        print(f"  Walk-forward plot saved to {PROC_DIR / 'walk_forward.png'}")
     except Exception as e:
         print(f"  Walk-forward plotting failed: {e}")
 

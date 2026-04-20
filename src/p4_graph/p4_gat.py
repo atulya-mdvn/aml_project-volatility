@@ -129,7 +129,7 @@ def train_gat(feat, cross_assets_df):
         avg = total/n
         if avg < best_loss:
             best_loss = avg; patience = 0
-            torch.save(model.state_dict(), os.path.join(MODEL_DIR, "gat.pt"))
+            torch.save(model.state_dict(), MODEL_DIR / "gat.pt")
         else:
             patience += 1
         if patience >= P4_PATIENCE:
@@ -137,7 +137,7 @@ def train_gat(feat, cross_assets_df):
         if (epoch+1) % 10 == 0:
             print(f"  Epoch {epoch+1}  Loss: {avg:.6f}")
 
-    model.load_state_dict(torch.load(os.path.join(MODEL_DIR, "gat.pt")))
+    model.load_state_dict(torch.load(MODEL_DIR / "gat.pt"))
 
     # extract embeddings
     model.eval(); head.eval()
@@ -154,6 +154,6 @@ def train_gat(feat, cross_assets_df):
 
     gat_df = pd.DataFrame(np.array(embeds), index=dates_out, columns=[f"gat_{i}" for i in range(P4_OUTPUT)])
     gat_df["mean_abs_corr"] = [np.abs(rolling_corrs.get(d, np.eye(1))).mean() for d in dates_out]
-    gat_df.to_csv(os.path.join(PROC_DIR, "p4_gat.csv"))
+    gat_df.to_csv(PROC_DIR / "p4_gat.csv")
     print(f"  P4 embeddings: {gat_df.shape}")
     return gat_df, model
