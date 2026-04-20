@@ -64,14 +64,13 @@ def load_pipeline_outputs():
     """
     print("Loading pipeline outputs...")
 
-    features = pd.read_csv(os.path.join(PROC_DIR, "features.csv"),
-                           index_col=0, parse_dates=True)
+    features = pd.read_csv(PROC_DIR / "features.csv", index_col=0, parse_dates=True)
 
     # Try to load each pipeline — skip gracefully if missing
     pipeline_dfs = {}
     for name, fname in [("p1", "p1_latent.csv"), ("p2", "p2_transformer.csv"),
                         ("p3", "p3_finbert.csv"), ("p4", "p4_gat.csv")]:
-        path = os.path.join(PROC_DIR, fname)
+        path = PROC_DIR / fname
         if os.path.exists(path):
             pipeline_dfs[name] = pd.read_csv(path, index_col=0, parse_dates=True)
             print(f"  {name}: {pipeline_dfs[name].shape}")
@@ -294,7 +293,7 @@ def build_output_csv(meta, feat_cols, predictions, spike_prob_all,
     df.loc[width_pcts >= 0.67, "confidence_level"] = "LOW"
 
     # ── Save ──
-    out_path = os.path.join(PROC_DIR, "predictions_with_ci.csv")
+    out_path = PROC_DIR / "predictions_with_ci.csv"
     df.to_csv(out_path, float_format="%.6f")
     print(f"  Saved to: {out_path}")
     print(f"  Shape: {df.shape}")
